@@ -8,11 +8,6 @@
     <style>
         /* --- Base Styles --- */
         body {
-            /* UPDATED FONT STACK: We are prioritizing the local name, then falling back to a 
-               more reliable, but still playful, cursive/system font. 
-               The true fix for Comic Sans involves purchasing/hosting the font file, 
-               but this stack improves consistency by removing 'cursive' as the immediate fallback 
-               which can look very different across OS versions. */
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Chalkboard', 'Bradley Hand', sans-serif;
             display: flex;
             flex-direction: column;
@@ -93,48 +88,48 @@
             transition: color 0.5s ease;
         }
 
-        /* --- MUMMY (Pink) Styles --- */
+        /* --- MUMMY (Blue) Styles --- */
         .mummy-theme {
-            background-color: #ffe0f0; 
+            background-color: #e0f2ff; /* Light Blue Background */
         }
         .mummy-theme #current-date-display, .mummy-theme h1, .mummy-theme .schedule-box h3 {
-             color: #4b0082; 
+             color: #191970; /* Dark Blue Text */
         }
         .mummy-theme .container {
-            box-shadow: 0 10px 20px rgba(255, 100, 150, 0.4); 
-            border: 5px solid #ff70a6; 
+            box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4); 
+            border: 5px solid #70aeff; /* Bright Blue Border */
         }
         .mummy-theme #duty-person p {
-            color: #ff70a6; 
-            border: 7px dashed #4b0082; 
-        }
-        .mummy-theme #duty-person p:hover {
-            background-color: #ffc2d1;
-        }
-        .mummy-theme .schedule-box {
-             border: 2px solid #ff70a6;
-        }
-
-        /* --- DADDY (Blue) Styles --- */
-        .daddy-theme {
-            background-color: #e0f2ff; 
-        }
-        .daddy-theme #current-date-display, .daddy-theme h1, .daddy-theme .schedule-box h3 {
-             color: #191970; 
-        }
-        .daddy-theme .container {
-            box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4); 
-            border: 5px solid #70aeff; 
-        }
-        .daddy-theme #duty-person p {
-            color: #70aeff; 
+            color: #70aeff; /* Bright Blue Name */
             border: 7px dashed #191970; 
         }
-        .daddy-theme #duty-person p:hover {
+        .mummy-theme #duty-person p:hover {
             background-color: #c2e2ff;
         }
-        .daddy-theme .schedule-box {
+        .mummy-theme .schedule-box {
              border: 2px solid #70aeff;
+        }
+
+        /* --- DADDY (Purple) Styles --- */
+        .daddy-theme {
+            background-color: #f7e0ff; /* Light Purple Background */
+        }
+        .daddy-theme #current-date-display, .daddy-theme h1, .daddy-theme .schedule-box h3 {
+             color: #4b0082; /* Deep Purple Text */
+        }
+        .daddy-theme .container {
+            box-shadow: 0 10px 20px rgba(150, 100, 255, 0.4); 
+            border: 5px solid #a870ff; /* Bright Purple Border */
+        }
+        .daddy-theme #duty-person p {
+            color: #a870ff; /* Bright Purple Name */
+            border: 7px dashed #4b0082; 
+        }
+        .daddy-theme #duty-person p:hover {
+            background-color: #e2c2ff;
+        }
+        .daddy-theme .schedule-box {
+             border: 2px solid #a870ff;
         }
         
     </style>
@@ -229,9 +224,9 @@
                 // --- Apply Theme Based on TODAY's Name ---
                 const nameLower = todayPerson.toLowerCase();
                 if (nameLower === 'mummy') {
-                    body.classList.add('mummy-theme');
+                    body.classList.add('mummy-theme'); // MUMMY is now BLUE
                 } else if (nameLower === 'daddy') {
-                    body.classList.add('daddy-theme');
+                    body.classList.add('daddy-theme'); // DADDY is now PURPLE
                 } else {
                     body.classList.add('mummy-theme'); 
                 }
