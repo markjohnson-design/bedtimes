@@ -8,14 +8,19 @@
     <style>
         /* --- Base Styles --- */
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
+            /* UPDATED FONT STACK: We are prioritizing the local name, then falling back to a 
+               more reliable, but still playful, cursive/system font. 
+               The true fix for Comic Sans involves purchasing/hosting the font file, 
+               but this stack improves consistency by removing 'cursive' as the immediate fallback 
+               which can look very different across OS versions. */
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Chalkboard', 'Bradley Hand', sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px; /* Added padding for space around schedule boxes */
+            padding: 20px;
             text-align: center;
             transition: background-color 0.5s ease;
         }
@@ -32,7 +37,7 @@
             padding: 50px 70px;
             border-radius: 25px;
             max-width: 90%;
-            margin-bottom: 30px; /* Space between main box and schedule */
+            margin-bottom: 30px;
             transition: box-shadow 0.5s ease, border-color 0.5s ease;
         }
 
@@ -68,7 +73,7 @@
             padding: 15px;
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            flex: 1; /* Makes them take equal space */
+            flex: 1;
             min-width: 150px;
             transition: border-color 0.5s ease, box-shadow 0.5s ease;
         }
@@ -159,7 +164,6 @@
 
     <script>
         // *****************************************************************
-        // The user's provided Google Sheet CSV URL is included here.
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQioGUU5wQ2vDoa0fL0QRCnGlxcVkp_mXPWaD0SU6xsvXOsnYbzaD9u0YTxNpCJDw37GIw6CzZ2a0qK/pub?output=csv'; 
         // *****************************************************************
         
@@ -169,14 +173,12 @@
         }
 
         function getDateString(offset) {
-            // Helper function to get YYYY-MM-DD for today (0), yesterday (-1), or tomorrow (1)
             const date = new Date();
             date.setDate(date.getDate() + offset);
             return date.toISOString().split('T')[0]; 
         }
 
         function findDuty(dataMap, dateString) {
-            // Looks up the person in the pre-processed map, or returns a message
             return dataMap[dateString] || 'Missing in Sheet';
         }
 
@@ -187,7 +189,7 @@
             const dateDisplayElement = document.getElementById('current-date-display');
             
             const today = new Date();
-            const todayString = getDateString(0); // Today's YYYY-MM-DD
+            const todayString = getDateString(0); 
 
             dateDisplayElement.textContent = getFormattedDate(today);
             body.classList.remove('mummy-theme', 'daddy-theme');
@@ -202,7 +204,6 @@
                 const rows = text.split('\n').filter(line => line.trim() !== '');
                 const dataRows = rows.slice(1);
                 
-                // 1. Create a quick lookup map from the CSV data: {'2025-11-26': 'Mummy', ...}
                 const scheduleMap = {};
                 for (const row of dataRows) {
                     const columns = row.split(','); 
@@ -213,7 +214,6 @@
                     }
                 }
 
-                // 2. Look up all three days
                 const yesterdayString = getDateString(-1);
                 const tomorrowString = getDateString(1);
                 
@@ -221,33 +221,29 @@
                 const todayPerson = findDuty(scheduleMap, todayString);
                 const tomorrowPerson = findDuty(scheduleMap, tomorrowString);
                 
-                // 3. Update the main display (Today)
                 dutyPersonElement.innerHTML = `<p>${todayPerson}</p>`;
 
-                // 4. Update the side schedule boxes
                 document.getElementById('yesterday-person').textContent = yesterdayPerson;
                 document.getElementById('tomorrow-person').textContent = tomorrowPerson;
 
-                // 5. Apply Theme Based on TODAY's Name
+                // --- Apply Theme Based on TODAY's Name ---
                 const nameLower = todayPerson.toLowerCase();
                 if (nameLower === 'mummy') {
                     body.classList.add('mummy-theme');
                 } else if (nameLower === 'daddy') {
                     body.classList.add('daddy-theme');
                 } else {
-                    // Default theme for unknown names or 'No Snuggles Found'
                     body.classList.add('mummy-theme'); 
                 }
 
             } catch (error) {
                 console.error('Error fetching or processing the schedule:', error);
                 
-                // Error state display
                 dutyPersonElement.innerHTML = '<p style="color: red; font-size: 2.5em; border: 3px solid red;">Uh Oh! Schedule needs fixing.</p>';
                 document.getElementById('yesterday-person').textContent = 'Error';
                 document.getElementById('tomorrow-person').textContent = 'Error';
                 dateDisplayElement.textContent = `Error: Could not connect to schedule!`;
-                body.classList.add('mummy-theme'); // Default theme for error
+                body.classList.add('mummy-theme'); 
             }
         }
 
