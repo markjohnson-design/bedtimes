@@ -3,118 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>😴 Bedtime Snuggles Schedule</title>
+    <title>🌟 Bedtime Snuggles!</title>
     
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
             display: flex;
+            flex-direction: column; /* Allow content to stack */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f8ff; /* Light blue background */
+            background-color: #ffe0f0; /* Soft pink/light red background */
             text-align: center;
+            overflow: hidden; /* Prevent scroll bars if images are large */
         }
 
         .container {
             background-color: white;
-            padding: 40px 60px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 50px 70px;
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(255, 100, 150, 0.4);
             max-width: 90%;
+            border: 5px solid #ff70a6;
+            margin-bottom: 20px; /* Space for clipart below */
         }
 
         h1 {
-            color: #333;
-            font-size: 1.5em;
-            margin-bottom: 20px;
+            color: #4b0082;
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
         }
 
         #duty-person p {
-            font-size: 3em;
-            font-weight: bold;
-            color: #4a90e2; /* Blue color for the name */
-            margin: 10px 0;
-            padding: 10px;
-            border: 3px solid #4a90e2;
-            border-radius: 8px;
+            font-size: 5em;
+            font-weight: 900;
+            color: #ff70a6;
+            margin: 20px 0;
+            padding: 15px;
+            border: 7px dashed #4b0082;
+            border-radius: 15px;
             display: inline-block;
+            background-color: #fff8f8;
             transition: all 0.3s ease;
         }
 
         #duty-person p:hover {
-            background-color: #e6f7ff;
+            background-color: #ffc2d1;
+            transform: scale(1.05);
         }
 
         .date {
-            margin-top: 15px;
+            margin-top: 25px;
             color: #777;
             font-style: italic;
+            font-size: 1.2em;
+        }
+
+        /* Styling for the clipart image */
+        #duty-image {
+            margin-top: 30px;
+            max-width: 250px; /* Adjust size as needed */
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 4px solid #4b0082;
+        }
+
+        #duty-image.hidden {
+            display: none; /* Hide image if no specific person or error */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Tonight's bedtime snuggles is:</h1> 
+        <h1>Doing bedtime snuggles tonight is:</h1> 
         <div id="duty-person">
             <p>Loading Schedule...</p>
         </div>
         <p class="date"></p>
     </div>
+    
+    <img id="duty-image" class="hidden" alt="Clipart of person on duty">
 
     <script>
         // *****************************************************************
-        // The user's provided Google Sheet CSV URL has been added here.
+        // The user's provided Google Sheet CSV URL is included here.
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQioGUU5wQ2vDoa0fL0QRCnGlxcVkp_mXPWaD0SU6xsvXOsnYbzaD9u0YTxNpCJDw37GIw6CzZ2a0qK/pub?output=csv'; 
         // *****************************************************************
         
+        // --- Clipart Image URLs ---
+        // !!! IMPORTANT: Replace these with actual image URLs you find online !!!
+        // You can find free clipart on sites like Pixabay, Pexels, Unsplash, or by
+        // searching "free cartoon [mummy/daddy] clipart" on Google Images (filter by usage rights).
+        const MUMMY_IMAGE_URL = 'https://i.imgur.com/example-mummy-image.png'; // Placeholder! Replace with real URL.
+        const DADDY_IMAGE_URL = 'https://i.imgur.com/example-daddy-image.png'; // Placeholder! Replace with real URL.
+        const DEFAULT_IMAGE_URL = 'https://i.imgur.com/example-default-image.png'; // Optional: for 'No Snuggles Found'
+
         function getTodayDateString() {
-            // Creates a date string that matches the format YYYY-MM-DD
             const today = new Date();
-            // Using toISOString() and splitting it gets a reliable YYYY-MM-DD format
             return today.toISOString().split('T')[0]; 
         }
 
         async function fetchDutySchedule() {
+            const dutyImageElement = document.getElementById('duty-image');
+            dutyImageElement.classList.add('hidden'); // Start hidden
+
             try {
-                // Fetch the data from the published CSV URL
                 const response = await fetch(GOOGLE_SHEET_URL);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const text = await response.text();
                 
-                // Process the CSV data
                 const rows = text.split('\n').filter(line => line.trim() !== '');
-                
-                // Skip the header row (Date,Duty Person)
                 const dataRows = rows.slice(1);
                 
                 const todayString = getTodayDateString();
                 let dutyPerson = 'No Snuggles Found'; 
+                let imageUrl = '';
 
-                // Find the entry for today
                 for (const row of dataRows) {
-                    // Assuming standard CSV where columns are separated by a comma
                     const columns = row.split(','); 
                     const date = columns[0].trim();
                     const person = columns[1] ? columns[1].trim() : 'Unknown'; 
 
                     if (date === todayString) {
                         dutyPerson = person;
+                        
+                        // Set image based on dutyPerson
+                        if (dutyPerson.toLowerCase() === 'mummy') { // Case-insensitive check
+                            imageUrl = MUMMY_IMAGE_URL;
+                        } else if (dutyPerson.toLowerCase() === 'daddy') { // Case-insensitive check
+                            imageUrl = DADDY_IMAGE_URL;
+                        } else {
+                            imageUrl = DEFAULT_IMAGE_URL; // Or leave blank
+                        }
                         break; 
                     }
                 }
                 
-                // Update the DOM with the result
                 document.getElementById('duty-person').innerHTML = `<p>${dutyPerson}</p>`;
                 document.querySelector('.date').textContent = `(Schedule lookup for: ${todayString})`;
 
+                // Display the image if a URL was found
+                if (imageUrl) {
+                    dutyImageElement.src = imageUrl;
+                    dutyImageElement.alt = `Picture of ${dutyPerson}`;
+                    dutyImageElement.classList.remove('hidden');
+                } else {
+                    dutyImageElement.classList.add('hidden'); // Hide if no image
+                }
+
             } catch (error) {
                 console.error('Error fetching or processing the schedule:', error);
-                document.getElementById('duty-person').innerHTML = '<p>Error Loading Schedule</p>';
-                document.querySelector('.date').textContent = `(Could not connect to Google Sheet)`;
+                document.getElementById('duty-person').innerHTML = '<p style="color: red; font-size: 2.5em;">Uh Oh! Schedule needs fixing.</p>';
+                document.querySelector('.date').textContent = `(Check the internet or the spreadsheet!)`;
+                dutyImageElement.classList.add('hidden'); // Hide image on error
             }
         }
 
