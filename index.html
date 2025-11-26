@@ -6,109 +6,148 @@
     <title>🌟 Bedtime Snuggles!</title>
     
     <style>
+        /* --- Base Styles (Applicable to both) --- */
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
             display: flex;
-            flex-direction: column; /* Allow content to stack */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #ffe0f0; /* Soft pink/light red background */
             text-align: center;
-            overflow: hidden; /* Prevent scroll bars if images are large */
+            transition: background-color 0.5s ease;
+        }
+
+        #current-date-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #4b0082; /* Default date color */
+            transition: color 0.5s ease;
         }
 
         .container {
             background-color: white;
             padding: 50px 70px;
             border-radius: 25px;
-            box-shadow: 0 10px 20px rgba(255, 100, 150, 0.4);
             max-width: 90%;
-            border: 5px solid #ff70a6;
-            margin-bottom: 20px; /* Space for clipart below */
+            transition: box-shadow 0.5s ease, border-color 0.5s ease;
         }
 
         h1 {
-            color: #4b0082;
             font-size: 2em;
             margin-bottom: 25px;
             text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+            transition: color 0.5s ease;
         }
 
         #duty-person p {
             font-size: 5em;
             font-weight: 900;
-            color: #ff70a6;
             margin: 20px 0;
             padding: 15px;
-            border: 7px dashed #4b0082;
             border-radius: 15px;
             display: inline-block;
             background-color: #fff8f8;
-            transition: all 0.3s ease;
+            transition: all 0.5s ease;
         }
 
-        #duty-person p:hover {
+        /* The .date element is now removed from the display */
+        /* .date {
+            display: none; 
+        } */
+
+
+        /* --- MUMMY (Default/Pink) Styles --- */
+        .mummy-theme {
+            background-color: #ffe0f0; 
+        }
+        .mummy-theme #current-date-display {
+             color: #4b0082; /* Deep purple */
+        }
+        .mummy-theme .container {
+            box-shadow: 0 10px 20px rgba(255, 100, 150, 0.4); 
+            border: 5px solid #ff70a6; 
+        }
+        .mummy-theme h1 {
+            color: #4b0082; 
+        }
+        .mummy-theme #duty-person p {
+            color: #ff70a6; 
+            border: 7px dashed #4b0082; 
+        }
+        .mummy-theme #duty-person p:hover {
             background-color: #ffc2d1;
-            transform: scale(1.05);
         }
 
-        .date {
-            margin-top: 25px;
-            color: #777;
-            font-style: italic;
-            font-size: 1.2em;
+        /* --- DADDY (Blue) Styles --- */
+        .daddy-theme {
+            background-color: #e0f2ff; 
         }
-
-        /* Styling for the clipart image */
-        #duty-image {
-            margin-top: 30px;
-            max-width: 250px; /* Adjust size as needed */
-            height: auto;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            border: 4px solid #4b0082;
+        .daddy-theme #current-date-display {
+             color: #191970; /* Darker blue */
         }
-
-        #duty-image.hidden {
-            display: none; /* Hide image if no specific person or error */
+        .daddy-theme .container {
+            box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4); 
+            border: 5px solid #70aeff; 
         }
+        .daddy-theme h1 {
+            color: #191970; 
+        }
+        .daddy-theme #duty-person p {
+            color: #70aeff; 
+            border: 7px dashed #191970; 
+        }
+        .daddy-theme #duty-person p:hover {
+            background-color: #c2e2ff;
+        }
+        
     </style>
 </head>
 <body>
+    <div id="current-date-display">
+        Loading Date...
+    </div>
+
     <div class="container">
         <h1>Doing bedtime snuggles tonight is:</h1> 
         <div id="duty-person">
             <p>Loading Schedule...</p>
         </div>
-        <p class="date"></p>
     </div>
-    
-    <img id="duty-image" class="hidden" alt="Clipart of person on duty">
-
     <script>
         // *****************************************************************
         // The user's provided Google Sheet CSV URL is included here.
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQioGUU5wQ2vDoa0fL0QRCnGlxcVkp_mXPWaD0SU6xsvXOsnYbzaD9u0YTxNpCJDw37GIw6CzZ2a0qK/pub?output=csv'; 
         // *****************************************************************
         
-        // --- Clipart Image URLs ---
-        // !!! IMPORTANT: Replace these with actual image URLs you find online !!!
-        // You can find free clipart on sites like Pixabay, Pexels, Unsplash, or by
-        // searching "free cartoon [mummy/daddy] clipart" on Google Images (filter by usage rights).
-        const MUMMY_IMAGE_URL = 'https://i.imgur.com/example-mummy-image.png'; // Placeholder! Replace with real URL.
-        const DADDY_IMAGE_URL = 'https://i.imgur.com/example-daddy-image.png'; // Placeholder! Replace with real URL.
-        const DEFAULT_IMAGE_URL = 'https://i.imgur.com/example-default-image.png'; // Optional: for 'No Snuggles Found'
+        function getFormattedDate(date) {
+            // Function to get the date in a nice, readable format (e.g., Wednesday, November 26, 2025)
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options);
+        }
 
         function getTodayDateString() {
+            // Returns the YYYY-MM-DD format needed for matching the Google Sheet data
             const today = new Date();
             return today.toISOString().split('T')[0]; 
         }
 
+        // --- Main Execution Function ---
         async function fetchDutySchedule() {
-            const dutyImageElement = document.getElementById('duty-image');
-            dutyImageElement.classList.add('hidden'); // Start hidden
+            const body = document.body;
+            const dutyPersonElement = document.getElementById('duty-person');
+            const dateDisplayElement = document.getElementById('current-date-display');
+            
+            const today = new Date();
+            const todayString = getTodayDateString();
+
+            // Display the current date immediately
+            dateDisplayElement.textContent = getFormattedDate(today);
+
+            // Clear any existing theme classes
+            body.classList.remove('mummy-theme', 'daddy-theme');
 
             try {
                 const response = await fetch(GOOGLE_SHEET_URL);
@@ -120,9 +159,7 @@
                 const rows = text.split('\n').filter(line => line.trim() !== '');
                 const dataRows = rows.slice(1);
                 
-                const todayString = getTodayDateString();
                 let dutyPerson = 'No Snuggles Found'; 
-                let imageUrl = '';
 
                 for (const row of dataRows) {
                     const columns = row.split(','); 
@@ -131,36 +168,29 @@
 
                     if (date === todayString) {
                         dutyPerson = person;
-                        
-                        // Set image based on dutyPerson
-                        if (dutyPerson.toLowerCase() === 'mummy') { // Case-insensitive check
-                            imageUrl = MUMMY_IMAGE_URL;
-                        } else if (dutyPerson.toLowerCase() === 'daddy') { // Case-insensitive check
-                            imageUrl = DADDY_IMAGE_URL;
-                        } else {
-                            imageUrl = DEFAULT_IMAGE_URL; // Or leave blank
-                        }
                         break; 
                     }
                 }
                 
-                document.getElementById('duty-person').innerHTML = `<p>${dutyPerson}</p>`;
-                document.querySelector('.date').textContent = `(Schedule lookup for: ${todayString})`;
+                dutyPersonElement.innerHTML = `<p>${dutyPerson}</p>`;
 
-                // Display the image if a URL was found
-                if (imageUrl) {
-                    dutyImageElement.src = imageUrl;
-                    dutyImageElement.alt = `Picture of ${dutyPerson}`;
-                    dutyImageElement.classList.remove('hidden');
+                // --- Apply Theme Based on Name ---
+                const nameLower = dutyPerson.toLowerCase();
+                if (nameLower === 'mummy') {
+                    body.classList.add('mummy-theme');
+                } else if (nameLower === 'daddy') {
+                    body.classList.add('daddy-theme');
                 } else {
-                    dutyImageElement.classList.add('hidden'); // Hide if no image
+                    // Default theme for unknown names or 'No Snuggles Found'
+                    body.classList.add('mummy-theme'); 
                 }
 
             } catch (error) {
                 console.error('Error fetching or processing the schedule:', error);
-                document.getElementById('duty-person').innerHTML = '<p style="color: red; font-size: 2.5em;">Uh Oh! Schedule needs fixing.</p>';
-                document.querySelector('.date').textContent = `(Check the internet or the spreadsheet!)`;
-                dutyImageElement.classList.add('hidden'); // Hide image on error
+                // Error state display
+                dutyPersonElement.innerHTML = '<p style="color: red; font-size: 2.5em; border: 3px solid red;">Uh Oh! Schedule needs fixing.</p>';
+                dateDisplayElement.textContent = `Error: Could not connect to schedule!`;
+                body.classList.add('mummy-theme'); // Default theme for error
             }
         }
 
