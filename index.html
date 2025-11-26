@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>😴 Bedtime Snuggles Schedule</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff; /* Light blue background */
+            text-align: center;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        #duty-person p {
+            font-size: 3em;
+            font-weight: bold;
+            color: #4a90e2; /* Blue color for the name */
+            margin: 10px 0;
+            padding: 10px;
+            border: 3px solid #4a90e2;
+            border-radius: 8px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        #duty-person p:hover {
+            background-color: #e6f7ff;
+        }
+
+        .date {
+            margin-top: 15px;
+            color: #777;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tonight's bedtime snuggles is:</h1> 
+        <div id="duty-person">
+            <p>Loading Schedule...</p>
+        </div>
+        <p class="date"></p>
+    </div>
+
+    <script>
+        // *****************************************************************
+        // The user's provided Google Sheet CSV URL has been added here.
+        const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQioGUU5wQ2vDoa0fL0QRCnGlxcVkp_mXPWaD0SU6xsvXOsnYbzaD9u0YTxNpCJDw37GIw6CzZ2a0qK/pub?output=csv'; 
+        // *****************************************************************
+        
+        function getTodayDateString() {
+            // Creates a date string that matches the format YYYY-MM-DD
+            const today = new Date();
+            // Using toISOString() and splitting it gets a reliable YYYY-MM-DD format
+            return today.toISOString().split('T')[0]; 
+        }
+
+        async function fetchDutySchedule() {
+            try {
+                // Fetch the data from the published CSV URL
+                const response = await fetch(GOOGLE_SHEET_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const text = await response.text();
+                
+                // Process the CSV data
+                const rows = text.split('\n').filter(line => line.trim() !== '');
+                
+                // Skip the header row (Date,Duty Person)
+                const dataRows = rows.slice(1);
+                
+                const todayString = getTodayDateString();
+                let dutyPerson = 'No Snuggles Found'; 
+
+                // Find the entry for today
+                for (const row of dataRows) {
+                    // Assuming standard CSV where columns are separated by a comma
+                    const columns = row.split(','); 
+                    const date = columns[0].trim();
+                    const person = columns[1] ? columns[1].trim() : 'Unknown'; 
+
+                    if (date === todayString) {
+                        dutyPerson = person;
+                        break; 
+                    }
+                }
+                
+                // Update the DOM with the result
+                document.getElementById('duty-person').innerHTML = `<p>${dutyPerson}</p>`;
+                document.querySelector('.date').textContent = `(Schedule lookup for: ${todayString})`;
+
+            } catch (error) {
+                console.error('Error fetching or processing the schedule:', error);
+                document.getElementById('duty-person').innerHTML = '<p>Error Loading Schedule</p>';
+                document.querySelector('.date').textContent = `(Could not connect to Google Sheet)`;
+            }
+        }
+
+        fetchDutySchedule();
+    </script>
+</body>
+</html>
