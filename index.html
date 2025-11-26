@@ -6,7 +6,7 @@
     <title>🌟 Bedtime Snuggles!</title>
     
     <style>
-        /* --- Base Styles (Applicable to both) --- */
+        /* --- Base Styles --- */
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
             display: flex;
@@ -15,6 +15,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px; /* Added padding for space around schedule boxes */
             text-align: center;
             transition: background-color 0.5s ease;
         }
@@ -23,7 +24,6 @@
             font-size: 1.5em;
             font-weight: bold;
             margin-bottom: 20px;
-            color: #4b0082; /* Default date color */
             transition: color 0.5s ease;
         }
 
@@ -32,6 +32,7 @@
             padding: 50px 70px;
             border-radius: 25px;
             max-width: 90%;
+            margin-bottom: 30px; /* Space between main box and schedule */
             transition: box-shadow 0.5s ease, border-color 0.5s ease;
         }
 
@@ -53,25 +54,50 @@
             transition: all 0.5s ease;
         }
 
-        /* The .date element is now removed from the display */
-        /* .date {
-            display: none; 
-        } */
+        /* --- Schedule Boxes (Yesterday/Tomorrow) --- */
+        .schedule-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            max-width: 800px;
+            width: 100%;
+        }
 
+        .schedule-box {
+            background-color: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1; /* Makes them take equal space */
+            min-width: 150px;
+            transition: border-color 0.5s ease, box-shadow 0.5s ease;
+        }
 
-        /* --- MUMMY (Default/Pink) Styles --- */
+        .schedule-box h3 {
+            font-size: 1.1em;
+            margin-top: 0;
+            margin-bottom: 5px;
+            color: #555;
+            transition: color 0.5s ease;
+        }
+
+        .schedule-box p {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 0;
+            transition: color 0.5s ease;
+        }
+
+        /* --- MUMMY (Pink) Styles --- */
         .mummy-theme {
             background-color: #ffe0f0; 
         }
-        .mummy-theme #current-date-display {
-             color: #4b0082; /* Deep purple */
+        .mummy-theme #current-date-display, .mummy-theme h1, .mummy-theme .schedule-box h3 {
+             color: #4b0082; 
         }
         .mummy-theme .container {
             box-shadow: 0 10px 20px rgba(255, 100, 150, 0.4); 
             border: 5px solid #ff70a6; 
-        }
-        .mummy-theme h1 {
-            color: #4b0082; 
         }
         .mummy-theme #duty-person p {
             color: #ff70a6; 
@@ -80,20 +106,20 @@
         .mummy-theme #duty-person p:hover {
             background-color: #ffc2d1;
         }
+        .mummy-theme .schedule-box {
+             border: 2px solid #ff70a6;
+        }
 
         /* --- DADDY (Blue) Styles --- */
         .daddy-theme {
             background-color: #e0f2ff; 
         }
-        .daddy-theme #current-date-display {
-             color: #191970; /* Darker blue */
+        .daddy-theme #current-date-display, .daddy-theme h1, .daddy-theme .schedule-box h3 {
+             color: #191970; 
         }
         .daddy-theme .container {
             box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4); 
             border: 5px solid #70aeff; 
-        }
-        .daddy-theme h1 {
-            color: #191970; 
         }
         .daddy-theme #duty-person p {
             color: #70aeff; 
@@ -101,6 +127,9 @@
         }
         .daddy-theme #duty-person p:hover {
             background-color: #c2e2ff;
+        }
+        .daddy-theme .schedule-box {
+             border: 2px solid #70aeff;
         }
         
     </style>
@@ -116,6 +145,18 @@
             <p>Loading Schedule...</p>
         </div>
     </div>
+
+    <div class="schedule-row">
+        <div class="schedule-box">
+            <h3>Yesterday's Snuggles</h3>
+            <p id="yesterday-person">...</p>
+        </div>
+        <div class="schedule-box">
+            <h3>Tomorrow's Snuggles</h3>
+            <p id="tomorrow-person">...</p>
+        </div>
+    </div>
+
     <script>
         // *****************************************************************
         // The user's provided Google Sheet CSV URL is included here.
@@ -123,15 +164,20 @@
         // *****************************************************************
         
         function getFormattedDate(date) {
-            // Function to get the date in a nice, readable format (e.g., Wednesday, November 26, 2025)
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             return date.toLocaleDateString(undefined, options);
         }
 
-        function getTodayDateString() {
-            // Returns the YYYY-MM-DD format needed for matching the Google Sheet data
-            const today = new Date();
-            return today.toISOString().split('T')[0]; 
+        function getDateString(offset) {
+            // Helper function to get YYYY-MM-DD for today (0), yesterday (-1), or tomorrow (1)
+            const date = new Date();
+            date.setDate(date.getDate() + offset);
+            return date.toISOString().split('T')[0]; 
+        }
+
+        function findDuty(dataMap, dateString) {
+            // Looks up the person in the pre-processed map, or returns a message
+            return dataMap[dateString] || 'Missing in Sheet';
         }
 
         // --- Main Execution Function ---
@@ -141,12 +187,9 @@
             const dateDisplayElement = document.getElementById('current-date-display');
             
             const today = new Date();
-            const todayString = getTodayDateString();
+            const todayString = getDateString(0); // Today's YYYY-MM-DD
 
-            // Display the current date immediately
             dateDisplayElement.textContent = getFormattedDate(today);
-
-            // Clear any existing theme classes
             body.classList.remove('mummy-theme', 'daddy-theme');
 
             try {
@@ -159,23 +202,34 @@
                 const rows = text.split('\n').filter(line => line.trim() !== '');
                 const dataRows = rows.slice(1);
                 
-                let dutyPerson = 'No Snuggles Found'; 
-
+                // 1. Create a quick lookup map from the CSV data: {'2025-11-26': 'Mummy', ...}
+                const scheduleMap = {};
                 for (const row of dataRows) {
                     const columns = row.split(','); 
                     const date = columns[0].trim();
                     const person = columns[1] ? columns[1].trim() : 'Unknown'; 
-
-                    if (date === todayString) {
-                        dutyPerson = person;
-                        break; 
+                    if (date) {
+                        scheduleMap[date] = person;
                     }
                 }
-                
-                dutyPersonElement.innerHTML = `<p>${dutyPerson}</p>`;
 
-                // --- Apply Theme Based on Name ---
-                const nameLower = dutyPerson.toLowerCase();
+                // 2. Look up all three days
+                const yesterdayString = getDateString(-1);
+                const tomorrowString = getDateString(1);
+                
+                const yesterdayPerson = findDuty(scheduleMap, yesterdayString);
+                const todayPerson = findDuty(scheduleMap, todayString);
+                const tomorrowPerson = findDuty(scheduleMap, tomorrowString);
+                
+                // 3. Update the main display (Today)
+                dutyPersonElement.innerHTML = `<p>${todayPerson}</p>`;
+
+                // 4. Update the side schedule boxes
+                document.getElementById('yesterday-person').textContent = yesterdayPerson;
+                document.getElementById('tomorrow-person').textContent = tomorrowPerson;
+
+                // 5. Apply Theme Based on TODAY's Name
+                const nameLower = todayPerson.toLowerCase();
                 if (nameLower === 'mummy') {
                     body.classList.add('mummy-theme');
                 } else if (nameLower === 'daddy') {
@@ -187,8 +241,11 @@
 
             } catch (error) {
                 console.error('Error fetching or processing the schedule:', error);
+                
                 // Error state display
                 dutyPersonElement.innerHTML = '<p style="color: red; font-size: 2.5em; border: 3px solid red;">Uh Oh! Schedule needs fixing.</p>';
+                document.getElementById('yesterday-person').textContent = 'Error';
+                document.getElementById('tomorrow-person').textContent = 'Error';
                 dateDisplayElement.textContent = `Error: Could not connect to schedule!`;
                 body.classList.add('mummy-theme'); // Default theme for error
             }
