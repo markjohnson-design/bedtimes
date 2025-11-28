@@ -61,6 +61,7 @@
             gap: 20px;
             max-width: 800px;
             width: 100%;
+            margin-bottom: 10px; 
         }
 
         .schedule-box {
@@ -87,21 +88,21 @@
             margin: 0;
             transition: color 0.5s ease;
         }
-
+        
         /* --- MUMMY (Blue) Styles --- */
         .mummy-theme {
-            background-color: #e0f2ff; /* Light Blue Background */
+            background-color: #e0f2ff;
         }
         .mummy-theme #current-date-display, .mummy-theme h1, .mummy-theme .schedule-box h3 {
-             color: #191970; /* Dark Blue Text */
+             color: #191970;
         }
         .mummy-theme .container {
-            box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4); 
-            border: 5px solid #70aeff; /* Bright Blue Border */
+            box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4);
+            border: 5px solid #70aeff;
         }
         .mummy-theme #duty-person p {
-            color: #70aeff; /* Bright Blue Name */
-            border: 7px dashed #191970; 
+            color: #70aeff;
+            border: 7px dashed #191970;
         }
         .mummy-theme #duty-person p:hover {
             background-color: #c2e2ff;
@@ -112,18 +113,18 @@
 
         /* --- DADDY (Purple) Styles --- */
         .daddy-theme {
-            background-color: #f7e0ff; /* Light Purple Background */
+            background-color: #f7e0ff;
         }
         .daddy-theme #current-date-display, .daddy-theme h1, .daddy-theme .schedule-box h3 {
-             color: #4b0082; /* Deep Purple Text */
+             color: #4b0082;
         }
         .daddy-theme .container {
-            box-shadow: 0 10px 20px rgba(150, 100, 255, 0.4); 
-            border: 5px solid #a870ff; /* Bright Purple Border */
+            box-shadow: 0 10px 20px rgba(150, 100, 255, 0.4);
+            border: 5px solid #a870ff;
         }
         .daddy-theme #duty-person p {
-            color: #a870ff; /* Bright Purple Name */
-            border: 7px dashed #4b0082; 
+            color: #a870ff;
+            border: 7px dashed #4b0082;
         }
         .daddy-theme #duty-person p:hover {
             background-color: #e2c2ff;
@@ -162,6 +163,7 @@
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQioGUU5wQ2vDoa0fL0QRCnGlxcVkp_mXPWaD0SU6xsvXOsnYbzaD9u0YTxNpCJDw37GIw6CzZ2a0qK/pub?output=csv'; 
         // *****************************************************************
         
+        // --- Helper Functions ---
         function getFormattedDate(date) {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             return date.toLocaleDateString(undefined, options);
@@ -190,6 +192,7 @@
             body.classList.remove('mummy-theme', 'daddy-theme');
 
             try {
+                // 1. Fetch Data
                 const response = await fetch(GOOGLE_SHEET_URL);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -199,6 +202,7 @@
                 const rows = text.split('\n').filter(line => line.trim() !== '');
                 const dataRows = rows.slice(1);
                 
+                // 2. Map Schedule
                 const scheduleMap = {};
                 for (const row of dataRows) {
                     const columns = row.split(','); 
@@ -209,6 +213,7 @@
                     }
                 }
 
+                // 3. Look up Days
                 const yesterdayString = getDateString(-1);
                 const tomorrowString = getDateString(1);
                 
@@ -216,17 +221,17 @@
                 const todayPerson = findDuty(scheduleMap, todayString);
                 const tomorrowPerson = findDuty(scheduleMap, tomorrowString);
                 
+                // 4. Update DOM
                 dutyPersonElement.innerHTML = `<p>${todayPerson}</p>`;
-
                 document.getElementById('yesterday-person').textContent = yesterdayPerson;
                 document.getElementById('tomorrow-person').textContent = tomorrowPerson;
 
-                // --- Apply Theme Based on TODAY's Name ---
+                // 5. Apply Theme
                 const nameLower = todayPerson.toLowerCase();
                 if (nameLower === 'mummy') {
-                    body.classList.add('mummy-theme'); // MUMMY is now BLUE
+                    body.classList.add('mummy-theme'); 
                 } else if (nameLower === 'daddy') {
-                    body.classList.add('daddy-theme'); // DADDY is now PURPLE
+                    body.classList.add('daddy-theme'); 
                 } else {
                     body.classList.add('mummy-theme'); 
                 }
@@ -234,6 +239,7 @@
             } catch (error) {
                 console.error('Error fetching or processing the schedule:', error);
                 
+                // Error state display
                 dutyPersonElement.innerHTML = '<p style="color: red; font-size: 2.5em; border: 3px solid red;">Uh Oh! Schedule needs fixing.</p>';
                 document.getElementById('yesterday-person').textContent = 'Error';
                 document.getElementById('tomorrow-person').textContent = 'Error';
@@ -242,7 +248,16 @@
             }
         }
 
-        fetchDutySchedule();
+        // -----------------------------------------------------
+        // ADDED: Auto-Update Logic
+        // -----------------------------------------------------
+        const REFRESH_INTERVAL_MS = 60000; // 60 seconds
+
+        // Run the function immediately when the page loads
+        fetchDutySchedule(); 
+
+        // Set up the interval timer to run the function repeatedly
+        setInterval(fetchDutySchedule, REFRESH_INTERVAL_MS);
     </script>
 </body>
 </html>
