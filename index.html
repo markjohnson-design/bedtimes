@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌟 Bedtime Snuggles!</title>
+    <title>🌟 Bedtime Snuggles Fun!</title>
     
     <style>
         /* --- Base Styles --- */
         body {
+            /* Uses Comic Sans MS and iOS-friendly alternatives for consistency */
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Chalkboard', 'Bradley Hand', sans-serif;
             display: flex;
             flex-direction: column;
@@ -91,14 +92,14 @@
         
         /* --- MUMMY (Blue) Styles --- */
         .mummy-theme {
-            background-color: #e0f2ff;
+            background-color: #e0f2ff; /* Light Blue */
         }
         .mummy-theme #current-date-display, .mummy-theme h1, .mummy-theme .schedule-box h3 {
-             color: #191970;
+             color: #191970; /* Dark Blue */
         }
         .mummy-theme .container {
             box-shadow: 0 10px 20px rgba(100, 150, 255, 0.4);
-            border: 5px solid #70aeff;
+            border: 5px solid #70aeff; /* Bright Blue */
         }
         .mummy-theme #duty-person p {
             color: #70aeff;
@@ -113,14 +114,14 @@
 
         /* --- DADDY (Purple) Styles --- */
         .daddy-theme {
-            background-color: #f7e0ff;
+            background-color: #f7e0ff; /* Light Purple */
         }
         .daddy-theme #current-date-display, .daddy-theme h1, .daddy-theme .schedule-box h3 {
-             color: #4b0082;
+             color: #4b0082; /* Deep Purple */
         }
         .daddy-theme .container {
             box-shadow: 0 10px 20px rgba(150, 100, 255, 0.4);
-            border: 5px solid #a870ff;
+            border: 5px solid #a870ff; /* Bright Purple */
         }
         .daddy-theme #duty-person p {
             color: #a870ff;
@@ -160,6 +161,7 @@
 
     <script>
         // *****************************************************************
+        // YOUR PUBLISHED GOOGLE SHEET LINK
         const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQioGUU5wQ2vDoa0fL0QRCnGlxcVkp_mXPWaD0SU6xsvXOsnYbzaD9u0YTxNpCJDw37GIw6CzZ2a0qK/pub?output=csv'; 
         // *****************************************************************
         
@@ -190,10 +192,16 @@
 
             dateDisplayElement.textContent = getFormattedDate(today);
             body.classList.remove('mummy-theme', 'daddy-theme');
+            
+            // Cache Buster: Appends a timestamp to the URL to force a fresh network request
+            const cacheBusterURL = `${GOOGLE_SHEET_URL}&t=${Date.now()}`;
 
             try {
-                // 1. Fetch Data
-                const response = await fetch(GOOGLE_SHEET_URL);
+                // 1. Fetch Data with strict cache control to solve auto-refresh issues
+                const response = await fetch(cacheBusterURL, {
+                    cache: 'no-cache' 
+                });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -229,9 +237,9 @@
                 // 5. Apply Theme
                 const nameLower = todayPerson.toLowerCase();
                 if (nameLower === 'mummy') {
-                    body.classList.add('mummy-theme'); 
+                    body.classList.add('mummy-theme'); // BLUE
                 } else if (nameLower === 'daddy') {
-                    body.classList.add('daddy-theme'); 
+                    body.classList.add('daddy-theme'); // PURPLE
                 } else {
                     body.classList.add('mummy-theme'); 
                 }
@@ -249,9 +257,9 @@
         }
 
         // -----------------------------------------------------
-        // ADDED: Auto-Update Logic
+        // Auto-Update Logic: Runs every 60 seconds
         // -----------------------------------------------------
-        const REFRESH_INTERVAL_MS = 60000; // 60 seconds
+        const REFRESH_INTERVAL_MS = 60000; 
 
         // Run the function immediately when the page loads
         fetchDutySchedule(); 
