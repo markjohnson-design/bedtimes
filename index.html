@@ -181,7 +181,7 @@
             return dataMap[dateString] || 'Missing in Sheet';
         }
 
-        // --- Main Execution Function ---
+        // --- Main Execution Function (Now runs only on page load) ---
         async function fetchDutySchedule() {
             const body = document.body;
             const dutyPersonElement = document.getElementById('duty-person');
@@ -197,7 +197,7 @@
             const cacheBusterURL = `${GOOGLE_SHEET_URL}&t=${Date.now()}`;
 
             try {
-                // 1. Fetch Data with strict cache control to solve auto-refresh issues
+                // 1. Fetch Data with strict cache control
                 const response = await fetch(cacheBusterURL, {
                     cache: 'no-cache' 
                 });
@@ -237,9 +237,9 @@
                 // 5. Apply Theme
                 const nameLower = todayPerson.toLowerCase();
                 if (nameLower === 'mummy') {
-                    body.classList.add('mummy-theme'); // BLUE
+                    body.classList.add('mummy-theme'); 
                 } else if (nameLower === 'daddy') {
-                    body.classList.add('daddy-theme'); // PURPLE
+                    body.classList.add('daddy-theme'); 
                 } else {
                     body.classList.add('mummy-theme'); 
                 }
@@ -257,15 +257,18 @@
         }
 
         // -----------------------------------------------------
-        // Auto-Update Logic: Runs every 60 seconds
+        // FINAL Auto-Update Logic: Full Page Reload
+        // This is the most robust solution for aggressive caching on older iOS devices.
         // -----------------------------------------------------
-        const REFRESH_INTERVAL_MS = 60000; 
+        const REFRESH_INTERVAL_MS = 60000; // 60 seconds
 
-        // Run the function immediately when the page loads
+        // 1. Run the function immediately when the page loads
         fetchDutySchedule(); 
 
-        // Set up the interval timer to run the function repeatedly
-        setInterval(fetchDutySchedule, REFRESH_INTERVAL_MS);
+        // 2. Set up the timer to force a complete page reload every minute.
+        setInterval(function() {
+            window.location.reload(true); 
+        }, REFRESH_INTERVAL_MS);
     </script>
 </body>
 </html>
