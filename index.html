@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌟 Bedtime Snuggles Fun!</title>
+    <title>🌟 Bedtime Snuggles!</title>
     
     <style>
         /* --- Base Styles --- */
@@ -181,7 +181,7 @@
             return dataMap[dateString] || 'Missing in Sheet';
         }
 
-        // --- Main Execution Function (Now runs only on page load) ---
+        // --- Main Execution Function (Runs only on page load/visibility change) ---
         async function fetchDutySchedule() {
             const body = document.body;
             const dutyPersonElement = document.getElementById('duty-person');
@@ -229,7 +229,7 @@
                 const todayPerson = findDuty(scheduleMap, todayString);
                 const tomorrowPerson = findDuty(scheduleMap, tomorrowString);
                 
-                // 4. Update DOM
+                // 4. Update DOM (Success)
                 dutyPersonElement.innerHTML = `<p>${todayPerson}</p>`;
                 document.getElementById('yesterday-person').textContent = yesterdayPerson;
                 document.getElementById('tomorrow-person').textContent = tomorrowPerson;
@@ -247,8 +247,9 @@
             } catch (error) {
                 console.error('Error fetching or processing the schedule:', error);
                 
-                // Error state display
-                dutyPersonElement.innerHTML = '<p style="color: red; font-size: 2.5em; border: 3px solid red;">Uh Oh! Schedule needs fixing.</p>';
+                // 6. Update DOM (Error State)
+                // Added a unique ID 'error-message' to the error display for the visibility check
+                dutyPersonElement.innerHTML = '<p id="error-message" style="color: red; font-size: 2.5em; border: 3px solid red;">Uh Oh! Schedule needs fixing.</p>';
                 document.getElementById('yesterday-person').textContent = 'Error';
                 document.getElementById('tomorrow-person').textContent = 'Error';
                 dateDisplayElement.textContent = `Error: Could not connect to schedule!`;
@@ -257,18 +258,24 @@
         }
 
         // -----------------------------------------------------
-        // FINAL Auto-Update Logic: Full Page Reload
-        // This is the most robust solution for aggressive caching on older iOS devices.
+        // FINAL Auto-Fix Logic: Conditional Reload on Screen Wake
+        // This resolves issues with iOS suspending and reviving the app incorrectly.
         // -----------------------------------------------------
-        const REFRESH_INTERVAL_MS = 60000; // 60 seconds
 
         // 1. Run the function immediately when the page loads
         fetchDutySchedule(); 
 
-        // 2. Set up the timer to force a complete page reload every minute.
-        setInterval(function() {
-            window.location.reload(true); 
-        }, REFRESH_INTERVAL_MS);
+        // 2. Add Listener: Check if the page is currently showing the error message 
+        //    when the browser tab becomes visible (i.e., screen is unlocked).
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                const errorMessage = document.getElementById('error-message');
+                // If the error element exists on the screen when we wake up, force a full hard reload.
+                if (errorMessage) {
+                    window.location.reload(true);
+                }
+            }
+        });
     </script>
 </body>
 </html>
